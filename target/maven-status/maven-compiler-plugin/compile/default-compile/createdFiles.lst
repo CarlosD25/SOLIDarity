@@ -1,0 +1,4 @@
+com\monolitico\conection\ConnectionDB.class
+com\monolitico\repository\UsuarioRepository.class
+com\monolitico\model\Usuario.class
+com\monolitico\controller\UsuarioController.class
