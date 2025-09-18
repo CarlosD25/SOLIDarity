@@ -16,19 +16,59 @@
                     const listaUsuarios = document.getElementById("listaUsuarios");
                     listaUsuarios.innerHTML = ''; 
 
-                    
                     if (usuarios.length === 0) {
                         listaUsuarios.innerHTML = '<li>No hay usuarios disponibles.</li>';
                     } else {
                         usuarios.forEach(usuario => {
                             const li = document.createElement("li");
                             li.textContent = `${usuario.nombre} ${usuario.apellido} - ${usuario.edad} años, ${usuario.nacionalidad}`;
+
+                            
+                            const enlaceEliminar = document.createElement("span");
+                            enlaceEliminar.textContent = " [Eliminar]";
+                            enlaceEliminar.style.color = "red";
+                            enlaceEliminar.style.cursor = "pointer";
+
+                            
+                            enlaceEliminar.onclick = function() {
+                                eliminarUsuario(usuario.id); 
+                            };
+
+                            
+                            li.appendChild(enlaceEliminar);
+
+                            
                             listaUsuarios.appendChild(li);
                         });
                     }
                 } else {
                     alert("Error al cargar los usuarios");
                 }
+            };
+
+            xhr.onerror = function() {
+                alert("Error en la conexión");
+            };
+
+            xhr.send();
+        }
+
+        
+        function eliminarUsuario(id) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("DELETE", "usuarios/" + id, true); 
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert("Usuario eliminado con éxito");
+                    cargarUsuarios(); 
+                } else {
+                    alert("Error al eliminar el usuario");
+                }
+            };
+
+            xhr.onerror = function() {
+                alert("Error en la conexión");
             };
 
             xhr.send();
@@ -56,12 +96,13 @@
                 if (xhr.status === 201) {
                     alert("Usuario creado con éxito");
                     
+                    // Limpiar el formulario
                     document.getElementById("nombre").value = '';
                     document.getElementById("apellido").value = '';
                     document.getElementById("edad").value = '';
                     document.getElementById("nacionalidad").value = '';
                     
-                    cargarUsuarios();
+                    cargarUsuarios(); 
                 } else {
                     alert("Error al crear el usuario");
                 }

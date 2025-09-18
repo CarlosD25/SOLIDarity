@@ -15,9 +15,7 @@ public class UsuarioRepository {
     public Usuario create(Usuario user) throws SQLException {
         String sql = "INSERT INTO usuarios (nombre, apellido, edad, nacionalidad) VALUES (?, ?, ?, ?)";
 
-
-        try (Connection conn = ConnectionDB.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = ConnectionDB.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, user.getNombre());
             stmt.setString(2, user.getApellido());
@@ -25,7 +23,6 @@ public class UsuarioRepository {
             stmt.setString(4, user.getNacionalidad());
 
             int affectedRows = stmt.executeUpdate();
-
 
             if (affectedRows == 0) {
                 throw new SQLException("Error al crear el usuario: No se insertaron filas.");
@@ -40,7 +37,7 @@ public class UsuarioRepository {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();  
+            e.printStackTrace();
         }
         return user;
     }
@@ -51,9 +48,7 @@ public class UsuarioRepository {
 
         System.out.println("Consultando todos los usuarios de la base de datos...");
 
-        try (Connection conn = ConnectionDB.getConnection(); 
-             PreparedStatement stmt = conn.prepareStatement(sql); 
-             ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = ConnectionDB.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Usuario user = new Usuario();
@@ -68,11 +63,44 @@ public class UsuarioRepository {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();  
-            throw e;  
+            e.printStackTrace();
+            throw e;
         }
 
         return usuarios;
+    }
+
+    public boolean findById(int id) throws SQLException {
+        String sql = "SELECT * FROM usuarios WHERE id = ?";
+        Connection conn = ConnectionDB.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                return rs.next();
+            }
+        }
+    }
+
+    public void delete(int id) throws SQLException {
+
+        String sql = "DELETE FROM usuarios WHERE id = ?";
+
+        try (Connection conn = ConnectionDB.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            boolean existe = findById(id);
+
+            if (!existe) {
+                throw new SQLException("No existe ese usuario en la base de datos");
+            }
+            stmt.setInt(1, id);
+
+            stmt.executeUpdate();
+
+        }
+
     }
 
 }
