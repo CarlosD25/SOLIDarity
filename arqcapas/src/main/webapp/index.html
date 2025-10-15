@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Gestión de Domiciliarios</title>
+        <style>
+            /* Reset básico */
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #f0f4f8;
+                margin: 0;
+                padding: 20px;
+            }
+
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                background: white;
+                padding: 30px 40px;
+                border-radius: 8px;
+                box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            }
+
+            form {
+                margin-bottom: 30px;
+            }
+
+            label {
+                display: block;
+                font-weight: 600;
+                margin-bottom: 6px;
+                color: #555;
+            }
+
+            input[type="text"], input[type="email"], input[type="tel"] {
+                width: 100%;
+                padding: 10px 12px;
+                margin-bottom: 15px;
+                border: 1.5px solid #ccc;
+                border-radius: 5px;
+                font-size: 1rem;
+                transition: border-color 0.3s ease;
+            }
+
+            input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+
+            button {
+                background-color: #007bff;
+                border: none;
+                padding: 12px 20px;
+                color: white;
+                font-weight: 700;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: background-color 0.3s ease;
+            }
+
+            button:hover {
+                background-color: #0056b3;
+            }
+
+            ul {
+                list-style: none;
+                padding-left: 0;
+            }
+
+            li {
+                background: #e9f0ff;
+                margin-bottom: 12px;
+                padding: 15px 20px;
+                border-radius: 6px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: #333;
+            }
+
+            .delete-btn {
+                background-color: #dc3545;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+                color: white;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            .delete-btn:hover {
+                background-color: #a71d2a;
+            }
+
+            .message {
+                text-align: center;
+                margin-bottom: 20px;
+                font-weight: 600;
+            }
+
+            .loading {
+                text-align: center;
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Gestión de Domiciliarios</h1>
+
+            <form id="formDomiciliario">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required />
+
+                <label for="telefono">Teléfono:</label>
+                <input type="tel" id="telefono" name="telefono" required />
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required />
+
+                <button type="submit">Agregar Domiciliario</button>
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <h2>Lista de Domiciliarios</h2>
+            <div id="loading" class="loading">Cargando domiciliarios...</div>
+            <ul id="listaDomiciliarios"></ul>
+        </div>
+
+        <script>
+            const urlBase = '/arqcapas/domiciliarios';
+
+            document.addEventListener('DOMContentLoaded', () => {
+                cargarDomiciliarios();
+
+                const form = document.getElementById('formDomiciliario');
+                form.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    await agregarDomiciliario();
+                });
+            });
+
+            async function cargarDomiciliarios() {
+                const lista = document.getElementById('listaDomiciliarios');
+                const loading = document.getElementById('loading');
+                const message = document.getElementById('message');
+
+                lista.innerHTML = '';
+                message.textContent = '';
+                loading.style.display = 'block';
+
+                try {
+                    const res = await fetch(urlBase);
+                    if (!res.ok)
+                        throw new Error(`Error al cargar: ${res.status}`);
+
+                    const domiciliarios = await res.json();
+
+                    loading.style.display = 'none';
+
+                    if (domiciliarios.length === 0) {
+                        lista.innerHTML = '<li>No hay domiciliarios disponibles.</li>';
+                        return;
+                    }
+
+                    domiciliarios.forEach(d => {
+                        const li = document.createElement('li');
+                        li.textContent = `${d.usuario.nombre} - Tel: ${d.usuario.telefono} - Email: ${d.usuario.email}`;
+
+                        const btnEliminar = document.createElement('button');
+                        btnEliminar.textContent = 'Eliminar';
+                        btnEliminar.classList.add('delete-btn');
+                        btnEliminar.onclick = () => eliminarDomiciliario(d.id);
+
+                        li.appendChild(btnEliminar);
+                        lista.appendChild(li);
+                    });
+                } catch (err) {
+                    loading.style.display = 'none';
+                    message.style.color = 'red';
+                    message.textContent = 'Error al cargar domiciliarios: ' + err.message;
+                }
+            }
+
+            async function agregarDomiciliario() {
+                const nombre = document.getElementById('nombre').value.trim();
+                const telefono = document.getElementById('telefono').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const message = document.getElementById('message');
+
+                message.textContent = '';
+                message.style.color = 'black';
+
+                if (!nombre || !telefono || !email) {
+                    message.style.color = 'red';
+                    message.textContent = 'Por favor, completa todos los campos.';
+                    return;
+                }
+
+                // Construir el objeto según tu modelo: Domiciliario -> Usuario
+                const domiciliario = {
+                    usuario: {
+                        nombre,
+                        telefono,
+                        email,
+                        // Ojo: no enviamos contraseña ni roles aquí
+                    }
+                };
+
+                try {
+                    const res = await fetch(urlBase, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(domiciliario)
+                    });
+
+                    if (res.status === 201) {
+                        message.style.color = 'green';
+                        message.textContent = 'Domiciliario agregado correctamente.';
+                        document.getElementById('formDomiciliario').reset();
+                        cargarDomiciliarios();
+                    } else {
+                        const errorData = await res.json();
+                        message.style.color = 'red';
+                        message.textContent = 'Error al agregar domiciliario: ' + (errorData.error || 'Error desconocido');
+                    }
+                } catch (err) {
+                    message.style.color = 'red';
+                    message.textContent = 'Error en la conexión: ' + err.message;
+                }
+            }
+
+            async function eliminarDomiciliario(id) {
+                if (!confirm('¿Seguro quieres eliminar este domiciliario?'))
+                    return;
+
+                const message = document.getElementById('message');
+                message.textContent = '';
+                message.style.color = 'black';
+
+                try {
+                    const res = await fetch(`${urlBase}/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (res.status === 204) {
+                        message.style.color = 'green';
+                        message.textContent = 'Domiciliario eliminado correctamente.';
+                        cargarDomiciliarios();
+                    } else {
+                        const errorData = await res.json();
+                        message.style.color = 'red';
+                        message.textContent = 'Error al eliminar domiciliario: ' + (errorData.error || 'Error desconocido');
+                    }
+                } catch (err) {
+                    message.style.color = 'red';
+                    message.textContent = 'Error en la conexión: ' + err.message;
+                }
+            }
+        </script>
+    </body>
+</html>
