@@ -46,7 +46,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDTO> getAll() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        
+        return userDao.getAll().stream().map(user->userMapper.toDTO(user)).toList();
+        
     }
 
     @Override

@@ -4,6 +4,7 @@
  */
 package persistencia.impl;
 
+import com.milista.datos.MiLista;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -106,7 +107,7 @@ public class UserDaoImpl implements UserDao {
                     u.setTelefono(rs.getString("telefono"));
                     u.setAddress(rs.getString("address"));
                     return u;
-                
+
                 }
 
             }
@@ -114,13 +115,39 @@ public class UserDaoImpl implements UserDao {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        
+
         return new User();
     }
 
     @Override
     public List<User> getAll() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+
+        List<User> users = new MiLista<>();
+
+        String sql = "select u.id, u.name, u.telefono, u.address from users u ";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    User u = new User();
+
+                    u.setId(rs.getInt("id"));
+                    u.setName(rs.getString("name"));
+                    u.setTelefono(rs.getString("telefono"));
+                    u.setAddress(rs.getString("address"));
+                    users.add(u);
+
+                }
+
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return users;
     }
 
     @Override

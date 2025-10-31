@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.List;
 import javax.swing.JOptionPane;
 import service.UserService;
 import service.UserServiceImpl;
@@ -50,16 +51,20 @@ public class UserController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
         try {
-            
-            String pathInfo = req.getPathInfo(); 
+            String pathInfo = req.getPathInfo();
+
             if (pathInfo == null || pathInfo.equals("/")) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("Falta el ID del usuario en la URL.");
+                List<UserResponseDTO> usuarios = userService.getAll();
+
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                objectMapper.writeValue(resp.getWriter(), usuarios);
                 return;
             }
 
-            int id = Integer.parseInt(pathInfo.substring(1)); 
+            int id = Integer.parseInt(pathInfo.substring(1));
 
             UserResponseDTO userResponseDTO = userService.getById(id);
 
