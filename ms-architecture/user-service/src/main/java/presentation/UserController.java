@@ -88,4 +88,46 @@ public class UserController extends HttpServlet {
         }
     }
 
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            String pathInfo = req.getPathInfo(); 
+
+            if (pathInfo == null) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Falta el ID del usuario.");
+                return;
+            }
+
+            String[] parts = pathInfo.split("/");
+            if (parts.length < 2) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("URL inválida.");
+                return;
+            }
+
+            int id = Integer.parseInt(parts[1]);
+
+            if (pathInfo.endsWith("/activate")) {
+                userService.activate(id);
+            } else if (pathInfo.endsWith("/deactivate")) {
+                userService.deactivate(id);
+            } else {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Acción no reconocida. Use /activate o /deactivate");
+                return;
+            }
+
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT); 
+
+        } catch (NumberFormatException ex) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("El ID debe ser numérico.");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("Error al procesar la solicitud.");
+        }
+    }
+
 }

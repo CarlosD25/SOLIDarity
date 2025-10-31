@@ -20,5 +20,6 @@ public interface UserService {
     UserResponseDTO getById(int id);
     List<UserResponseDTO> getAll();
     UserResponseDTO update(int id, UserRequestDTO user);
-    void delete(int id);
+    void deactivate(int id);
+    void activate(int id);
 }

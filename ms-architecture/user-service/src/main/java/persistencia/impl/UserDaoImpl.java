@@ -156,8 +156,22 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void delete(int id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void deactivate(int id) {
+
+        String sql = "update users set active = false where id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int rowsUpdated = ps.executeUpdate();
+
+            if (rowsUpdated == 0) {
+                System.out.println("No se encontró ningún usuario con id = " + id);
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
     }
 
     @Override
@@ -174,6 +188,23 @@ public class UserDaoImpl implements UserDao {
             ex.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void activate(int id) {
+        String sql = "update users set active = true where id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int rowsUpdated = ps.executeUpdate();
+
+            if (rowsUpdated == 0) {
+                System.out.println("No se encontró ningún usuario con id = " + id);
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     }
 
 }

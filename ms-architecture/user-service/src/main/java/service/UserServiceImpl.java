@@ -29,8 +29,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO create(UserRequestDTO userRequestDTO) {
         User user = userMapper.toEntity(userRequestDTO);
-        Rol rol = rolDao.existsRol("ROLE_USER")? 
-                rolDao.findByName("ROLE_USER") : rolDao.save(new Rol("ROLE_USER"));
+        Rol rol = rolDao.existsRol("ROLE_USER")
+                ? rolDao.findByName("ROLE_USER") : rolDao.save(new Rol("ROLE_USER"));
         user.setActive(true);
         user = userDao.create(user);
         userDao.assignRoleToUser(user.getId(), rol.getId());
@@ -39,16 +39,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO getById(int id) {
-        
+
         return userMapper.toDTO(userDao.getById(id));
-        
+
     }
 
     @Override
     public List<UserResponseDTO> getAll() {
-        
-        return userDao.getAll().stream().map(user->userMapper.toDTO(user)).toList();
-        
+
+        return userDao.getAll().stream().map(user -> userMapper.toDTO(user)).toList();
+
     }
 
     @Override
@@ -57,8 +57,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(int id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void deactivate(int id) {
+        userDao.deactivate(id);
+    }
+
+    @Override
+    public void activate(int id) {
+        userDao.activate(id);
     }
 
 }

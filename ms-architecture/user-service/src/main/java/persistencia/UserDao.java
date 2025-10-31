@@ -17,7 +17,8 @@ public interface UserDao {
     User getById(int id);
     List<User> getAll();
     User update(int id, User user);
-    void delete(int id);
+    void deactivate(int id);
+    void activate(int id);
     void assignRoleToUser(int userId, int roleId);
     
 }
