@@ -42,10 +42,45 @@ public class UserController extends HttpServlet {
             resp.setCharacterEncoding("UTF-8");
             resp.setStatus(HttpServletResponse.SC_CREATED);
             objectMapper.writeValue(resp.getWriter(), userResponseDTO);
-        }catch(Exception ex){
+        } catch (Exception ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            
+            String pathInfo = req.getPathInfo(); 
+            if (pathInfo == null || pathInfo.equals("/")) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Falta el ID del usuario en la URL.");
+                return;
+            }
+
+            int id = Integer.parseInt(pathInfo.substring(1)); 
+
+            UserResponseDTO userResponseDTO = userService.getById(id);
+
+            if (userResponseDTO.getId() == 0) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("Usuario no encontrado.");
+                return;
+            }
+
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            objectMapper.writeValue(resp.getWriter(), userResponseDTO);
+
+        } catch (NumberFormatException ex) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("El ID debe ser numérico.");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("Error al procesar la solicitud.");
+        }
     }
 
 }

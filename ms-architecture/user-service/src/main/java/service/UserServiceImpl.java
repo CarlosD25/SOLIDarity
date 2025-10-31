@@ -39,7 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO getById(int id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        
+        return userMapper.toDTO(userDao.getById(id));
+        
     }
 
     @Override
