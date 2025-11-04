@@ -17,16 +17,20 @@ public class UserResponseDTO {
     private String name;
     private String telefono;
     private String address;
+    private String email;
 
     public UserResponseDTO() {
     }
 
-    public UserResponseDTO(int id, String name, String telefono, String address) {
+    public UserResponseDTO(int id, String name, String telefono, String address, String email) {
         this.id = id;
         this.name = name;
         this.telefono = telefono;
         this.address = address;
+        this.email = email;
     }
+
+    
 
     public int getId() {
         return id;
@@ -58,6 +62,14 @@ public class UserResponseDTO {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
    
