@@ -4,6 +4,7 @@
  */
 package persistencia;
 
+import java.io.InputStream;
 import java.util.List;
 import model.User;
 
@@ -20,5 +21,7 @@ public interface UserDao {
     void deactivate(int id);
     void activate(int id);
     void assignRoleToUser(int userId, int roleId);
-    
+    void saveUserPDF(User user, String estado, String fileName, InputStream file);
+    boolean hasRole(int id, String role);
+    String getPdfState(int id);
 }

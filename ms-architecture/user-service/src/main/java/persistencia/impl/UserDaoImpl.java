@@ -5,17 +5,27 @@
 package persistencia.impl;
 
 import com.milista.datos.MiLista;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.gridfs.GridFSBucket;
+import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.model.GridFSUploadOptions;
+import com.mongodb.client.model.Sorts;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Rol;
 import model.User;
+import org.bson.Document;
 import org.mindrot.jbcrypt.BCrypt;
+import persistencia.ConnectionMongoDB;
 import persistencia.ConnectionPostgresDB;
 import persistencia.UserDao;
 
@@ -26,6 +36,9 @@ import persistencia.UserDao;
 public class UserDaoImpl implements UserDao {
 
     private Connection conn;
+    private final MongoDatabase database;
+
+    private final GridFSBucket gridFSBucket;
 
     public UserDaoImpl() {
 
@@ -35,6 +48,8 @@ public class UserDaoImpl implements UserDao {
             Logger.getLogger(UserDaoImpl.class.getName()).log(Level.SEVERE, "Ocurrió un error en UserDaoImpl", ex);
         }
 
+        this.database = ConnectionMongoDB.getDatabase();
+        this.gridFSBucket = GridFSBuckets.create(database, "pdfsUsuarios");
     }
 
     @Override
@@ -61,6 +76,7 @@ public class UserDaoImpl implements UserDao {
                         u.setName(rs.getString("name"));
                         u.setTelefono(rs.getString("telefono"));
                         u.setAddress(rs.getString("address"));
+                        u.setEmail(rs.getString("email"));
                     }
 
                 }
@@ -91,7 +107,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public User getById(int id) {
 
-        String sql = "select u.name, u.telefono, u.address from users u where u.id = ?";
+        String sql = "select * from users u where u.id = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -106,6 +122,8 @@ public class UserDaoImpl implements UserDao {
                     u.setName(rs.getString("name"));
                     u.setTelefono(rs.getString("telefono"));
                     u.setAddress(rs.getString("address"));
+                    u.setActive(rs.getBoolean("active"));
+                    u.setEmail(rs.getString("email"));
                     return u;
 
                 }
@@ -124,7 +142,7 @@ public class UserDaoImpl implements UserDao {
 
         List<User> users = new MiLista<>();
 
-        String sql = "select u.id, u.name, u.telefono, u.address from users u ";
+        String sql = "select u.id, u.name, u.telefono, u.address, u.email from users u ";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -137,6 +155,7 @@ public class UserDaoImpl implements UserDao {
                     u.setName(rs.getString("name"));
                     u.setTelefono(rs.getString("telefono"));
                     u.setAddress(rs.getString("address"));
+                    u.setEmail(rs.getString("email"));
                     users.add(u);
 
                 }
@@ -205,6 +224,72 @@ public class UserDaoImpl implements UserDao {
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public void saveUserPDF(User user, String estado, String fileName, InputStream file) {
+        try {
+
+            Document metadata = new Document()
+                    .append("userId", user.getId())
+                    .append("nombre", user.getName())
+                    .append("email", user.getEmail())
+                    .append("estado", estado);
+
+            GridFSUploadOptions options = new GridFSUploadOptions()
+                    .metadata(metadata);
+
+            gridFSBucket.uploadFromStream(fileName, file, options);
+
+            System.out.println("PDF subido correctamente para usuario id: " + user.getId());
+        } catch (Exception e) {
+            Logger.getLogger(UserDaoImpl.class.getName()).log(Level.SEVERE, "Error al subir PDF", e);
+        }
+    }
+
+    @Override
+    public boolean hasRole(int id, String role) {
+
+        String sql = "select 1 from roles_users where id_user= ? and id_rol = "
+                + "(select id from roles where nombre=?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ps.setString(2, role);
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                return rs.next();
+
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return false;
+    }
+
+    @Override
+    public String getPdfState(int id) {
+        MongoCollection<Document> filesCollection = database.getCollection("pdfsUsuarios.files");
+
+        Document query = new Document("metadata.userId", id);  
+
+        Document sort = new Document("uploadDate", -1);  
+
+        Document fileDoc = filesCollection.find(query).sort(sort).first();  
+
+        if (fileDoc != null) {
+            Document metadata = (Document) fileDoc.get("metadata");
+
+            if (metadata != null && metadata.containsKey("estado")) {
+                return metadata.getString("estado");
+            }
+        }
+
+        return null;
     }
 
 }
