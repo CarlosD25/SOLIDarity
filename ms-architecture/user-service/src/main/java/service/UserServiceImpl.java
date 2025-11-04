@@ -4,8 +4,10 @@
  */
 package service;
 
+import dto.BeneficiarioStatusResponseDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
+import java.io.InputStream;
 import java.util.List;
 import mapper.UserMapper;
 import mapper.UserMapperImpl;
@@ -29,8 +31,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO create(UserRequestDTO userRequestDTO) {
         User user = userMapper.toEntity(userRequestDTO);
-        Rol rol = rolDao.existsRol("ROLE_USER")
-                ? rolDao.findByName("ROLE_USER") : rolDao.save(new Rol("ROLE_USER"));
+        Rol rol = rolDao.existsRol("ROLE_DONANTE")
+                ? rolDao.findByName("ROLE_DONANTE") : rolDao.save(new Rol("ROLE_DONANTE"));
         user.setActive(true);
         user = userDao.create(user);
         userDao.assignRoleToUser(user.getId(), rol.getId());
@@ -64,6 +66,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public void activate(int id) {
         userDao.activate(id);
+    }
+
+    @Override
+    public void saveUserPDF(int id, String filename, InputStream inputStream) {
+        
+        User u = userDao.getById(id);
+        userDao.saveUserPDF(u, "PENDIENTE", filename, inputStream);
+        
+    }
+
+    @Override
+    public BeneficiarioStatusResponseDTO getBeneficiarioStatus(int id) {
+        
+        String status = userDao.getPdfState(id);
+        BeneficiarioStatusResponseDTO responseDTO = new BeneficiarioStatusResponseDTO();
+        responseDTO.setStatus(status);
+        return responseDTO;
     }
 
 }

@@ -5,8 +5,10 @@
 package service;
 
 
+import dto.BeneficiarioStatusResponseDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
+import java.io.InputStream;
 import java.util.List;
 import model.User;
 
@@ -22,4 +24,6 @@ public interface UserService {
     UserResponseDTO update(int id, UserRequestDTO user);
     void deactivate(int id);
     void activate(int id);
+    void saveUserPDF(int id,String filename,InputStream inputStream);
+    BeneficiarioStatusResponseDTO getBeneficiarioStatus(int id);
 }
