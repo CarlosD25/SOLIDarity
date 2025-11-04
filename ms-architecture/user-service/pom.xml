@@ -45,6 +45,13 @@
             <artifactId>libreria</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <!-- Maven -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>4.10.2</version>
+        </dependency>
+
     </dependencies>
     
     <build>
