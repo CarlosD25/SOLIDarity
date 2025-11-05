@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Rol;
+import model.Roles;
 import persistencia.ConnectionPostgresDB;
 import persistencia.RolDao;
 
@@ -65,7 +66,7 @@ public class RolDaoImpl implements RolDao {
         String sql = "insert into roles (nombre) values (?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, rol.getName());
+            ps.setString(1, rol.getRole().name());
             int rows = ps.executeUpdate();
 
             if (rows > 0) {
@@ -104,7 +105,7 @@ public class RolDaoImpl implements RolDao {
 
                     Rol r = new Rol();
                     r.setId(rs.getInt(1));
-                    r.setName(rs.getString(2));
+                    r.setRole(Roles.valueOf(rs.getString(2)));
                     return r;
                 }
 

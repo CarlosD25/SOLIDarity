@@ -11,18 +11,18 @@ package model;
 public class Rol {
     
     private int id;
-    private String name;
+    private Roles role;
 
     public Rol() {
     }
 
-    public Rol(int id, String name) {
-        this.id = id;
-        this.name = name;
+    public Rol(Roles role) {
+        this.role = role;
     }
 
-    public Rol(String name) {
-        this.name = name;
+    public Rol(int id, Roles role) {
+        this.id = id;
+        this.role = role;
     }
 
     public int getId() {
@@ -33,13 +33,18 @@ public class Rol {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Roles getRole() {
+        return role;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRole(Roles role) {
+        this.role = role;
     }
+
+
+   
+
+    
 
     
     

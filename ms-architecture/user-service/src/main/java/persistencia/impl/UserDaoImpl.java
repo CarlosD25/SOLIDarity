@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Rol;
+import model.StatusPDF;
 import model.User;
 import org.bson.Document;
 import org.mindrot.jbcrypt.BCrypt;
@@ -227,21 +228,20 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void saveUserPDF(User user, String estado, String fileName, InputStream file) {
+    public void saveUserPDF(User user, StatusPDF estado, String fileName, InputStream file) {
         try {
 
             Document metadata = new Document()
                     .append("userId", user.getId())
                     .append("nombre", user.getName())
                     .append("email", user.getEmail())
-                    .append("estado", estado);
+                    .append("estado", estado.name());
 
             GridFSUploadOptions options = new GridFSUploadOptions()
                     .metadata(metadata);
 
             gridFSBucket.uploadFromStream(fileName, file, options);
 
-            System.out.println("PDF subido correctamente para usuario id: " + user.getId());
         } catch (Exception e) {
             Logger.getLogger(UserDaoImpl.class.getName()).log(Level.SEVERE, "Error al subir PDF", e);
         }

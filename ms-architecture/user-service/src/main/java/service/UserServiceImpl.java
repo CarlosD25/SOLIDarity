@@ -12,6 +12,8 @@ import java.util.List;
 import mapper.UserMapper;
 import mapper.UserMapperImpl;
 import model.Rol;
+import model.Roles;
+import model.StatusPDF;
 import model.User;
 import persistencia.RolDao;
 import persistencia.UserDao;
@@ -31,8 +33,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO create(UserRequestDTO userRequestDTO) {
         User user = userMapper.toEntity(userRequestDTO);
-        Rol rol = rolDao.existsRol("ROLE_DONANTE")
-                ? rolDao.findByName("ROLE_DONANTE") : rolDao.save(new Rol("ROLE_DONANTE"));
+        Rol rol = rolDao.existsRol(Roles.ROLE_DONANTE.name())
+                ? rolDao.findByName(Roles.ROLE_DONANTE.name()) : rolDao.save(new Rol(Roles.ROLE_DONANTE));
         user.setActive(true);
         user = userDao.create(user);
         userDao.assignRoleToUser(user.getId(), rol.getId());
@@ -72,7 +74,7 @@ public class UserServiceImpl implements UserService {
     public void saveUserPDF(int id, String filename, InputStream inputStream) {
         
         User u = userDao.getById(id);
-        userDao.saveUserPDF(u, "PENDIENTE", filename, inputStream);
+        userDao.saveUserPDF(u, StatusPDF.PENDIENTE, filename, inputStream);
         
     }
 
