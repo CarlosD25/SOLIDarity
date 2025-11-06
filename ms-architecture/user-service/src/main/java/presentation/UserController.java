@@ -40,7 +40,7 @@ public class UserController extends HttpServlet {
 
         if (pathInfo != null && pathInfo.endsWith("/pdfs")) {
             String[] parts = pathInfo.split("/");
-            int userId = Integer.parseInt(parts[1]); // extraemos "1"
+            int userId = Integer.parseInt(parts[1]); 
 
             Part filePart = req.getPart("file");
             String filename = filePart.getSubmittedFileName();
