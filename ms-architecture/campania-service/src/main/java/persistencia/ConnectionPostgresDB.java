@@ -22,7 +22,7 @@ public class ConnectionPostgresDB {
 
             String USER = "postgres";
             String PASSWORD = "1234";
-            String URL = "jdbc:postgresql://localhost:5433/notification-service-db";
+            String URL = "jdbc:postgresql://localhost:5433/campañas-service-db";
 
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
         }
