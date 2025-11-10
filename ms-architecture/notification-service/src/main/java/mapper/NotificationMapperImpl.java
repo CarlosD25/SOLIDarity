@@ -14,6 +14,19 @@ import model.Notification;
  */
 public class NotificationMapperImpl implements NotificationMapper {
 
+    private static NotificationMapperImpl mapperImpl = new NotificationMapperImpl();
+
+    private NotificationMapperImpl() {
+    }
+
+    private static class Holder {
+        private static final NotificationMapperImpl INSTANCE = new NotificationMapperImpl();
+    }
+
+    public static NotificationMapperImpl getInstance() {
+        return Holder.INSTANCE;
+    }
+
     @Override
     public Notification toEntity(NotificationRequestDTO requestDTO) {
 
