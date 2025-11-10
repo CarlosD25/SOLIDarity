@@ -1,5 +1,6 @@
 package persistencia;
 
+import config.Config;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -20,9 +21,9 @@ public class ConnectionPostgresDB {
                 throw new SQLException("Driver PostgreSQL no encontrado", ex);
             }
 
-            String USER = "postgres";
-            String PASSWORD = "1234";
-            String URL = "jdbc:postgresql://localhost:5433/campañas-service-db";
+            String USER = Config.get("POSTGRES_USER");
+            String PASSWORD = Config.get("POSTGRES_PASSWORD");
+            String URL = "jdbc:postgresql://localhost:"+Config.get("POSTGRES_HOST")+"/"+Config.get("POSTGRES_DB");;
 
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
         }
