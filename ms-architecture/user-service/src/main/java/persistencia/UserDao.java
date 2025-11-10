@@ -4,6 +4,7 @@
  */
 package persistencia;
 
+import com.mongodb.client.gridfs.model.GridFSFile;
 import java.io.InputStream;
 import java.util.List;
 import model.StatusPDF;
@@ -16,13 +17,19 @@ import model.User;
 public interface UserDao {
     
     User create(User user);
-    User getById(int id);
+    User findById(int id);
     List<User> getAll();
-    User update(int id, User user);
+    User updatePostgres(int id, User user);
+    void updateMongo(int id, User user);
     void deactivate(int id);
     void activate(int id);
     void assignRoleToUser(int userId, int roleId);
     void saveUserPDF(User user, StatusPDF estado, String fileName, InputStream file);
     boolean hasRole(int id, String role);
     String getPdfState(int id);
+    List<User> findUsersWithLastPdfByState(String estado);
+    GridFSFile findLatestPdfByUserId(int userId);
+    InputStream getPdfStream(GridFSFile file);
+    void actualizarPdfEstado(int idUsuario,StatusPDF statusPDF);
+    boolean existById(int id);
 }

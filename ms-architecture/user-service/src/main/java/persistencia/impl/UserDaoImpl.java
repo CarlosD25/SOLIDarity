@@ -6,11 +6,15 @@ package persistencia.impl;
 
 import com.milista.datos.MiLista;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import config.Config;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,16 +22,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.Rol;
 import model.StatusPDF;
 import model.User;
 import org.bson.Document;
 import org.mindrot.jbcrypt.BCrypt;
-import persistencia.ConnectionMongoDB;
-import persistencia.ConnectionPostgresDB;
+import persistencia.connection.ConnectionMongoDB;
+import persistencia.connection.ConnectionPostgresDB;
 import persistencia.UserDao;
 
 /**
@@ -50,7 +55,7 @@ public class UserDaoImpl implements UserDao {
         }
 
         this.database = ConnectionMongoDB.getDatabase();
-        this.gridFSBucket = GridFSBuckets.create(database, "pdfsUsuarios");
+        this.gridFSBucket = GridFSBuckets.create(database, ""+Config.get("MONGO_BUCKET"));
     }
 
     @Override
@@ -102,11 +107,11 @@ public class UserDaoImpl implements UserDao {
                 Logger.getLogger(UserDaoImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        return new User();
+        return null;
     }
 
     @Override
-    public User getById(int id) {
+    public User findById(int id) {
 
         String sql = "select * from users u where u.id = ?";
 
@@ -135,7 +140,7 @@ public class UserDaoImpl implements UserDao {
             ex.printStackTrace();
         }
 
-        return new User();
+        return null;
     }
 
     @Override
@@ -171,8 +176,55 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User update(int id, User user) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public User updatePostgres(int id, User user) {
+        StringBuilder sql = new StringBuilder("update users set ");
+        List<Object> params = new ArrayList<>();
+
+        if (user.getName() != null) {
+            sql.append("name = ?, ");
+            params.add(user.getName());
+        }
+
+        if (user.getTelefono() != null) {
+            sql.append("telefono = ?, ");
+            params.add(user.getTelefono());
+        }
+
+        if (user.getAddress() != null) {
+            sql.append("address = ?, ");
+            params.add(user.getAddress());
+        }
+
+        if (user.getPassword() != null) {
+            sql.append("password = ?, ");
+            params.add(user.getPassword());
+        }
+
+        if (user.getEmail() != null) {
+            sql.append("email = ?, ");
+            params.add(user.getEmail());
+        }
+
+        if (params.isEmpty()) {
+            return findById(id);
+        }
+
+        sql.setLength(sql.length() - 2);
+        sql.append(" where id = ?");
+        params.add(id);
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return findById(id);
     }
 
     @Override
@@ -232,7 +284,7 @@ public class UserDaoImpl implements UserDao {
         try {
 
             Document metadata = new Document()
-                    .append("userId", user.getId())
+                    .append("user_id", user.getId())
                     .append("nombre", user.getName())
                     .append("email", user.getEmail())
                     .append("estado", estado.name());
@@ -273,13 +325,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String getPdfState(int id) {
-        MongoCollection<Document> filesCollection = database.getCollection("pdfsUsuarios.files");
+        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET")+".files");
 
-        Document query = new Document("metadata.userId", id);  
+        Document query = new Document("metadata.user_id", id);
 
-        Document sort = new Document("uploadDate", -1);  
+        Document sort = new Document("uploadDate", -1);
 
-        Document fileDoc = filesCollection.find(query).sort(sort).first();  
+        Document fileDoc = filesCollection.find(query).sort(sort).first();
 
         if (fileDoc != null) {
             Document metadata = (Document) fileDoc.get("metadata");
@@ -290,6 +342,116 @@ public class UserDaoImpl implements UserDao {
         }
 
         return null;
+    }
+
+    @Override
+    public List<User> findUsersWithLastPdfByState(String estado) {
+
+        Map<Integer, User> lastPdfPerUser = new LinkedHashMap<>();
+
+        try (MongoCursor<GridFSFile> cursor = gridFSBucket.find(Filters.eq("metadata.estado", estado))
+                .sort(Sorts.descending("uploadDate"))
+                .iterator()) {
+            while (cursor.hasNext()) {
+                GridFSFile file = cursor.next();
+                Document metadata = file.getMetadata();
+                int userId = metadata.getInteger("user_id");
+
+                if (!lastPdfPerUser.containsKey(userId)) {
+                    User user = new User();
+                    user.setId(userId);
+                    user.setName(metadata.getString("nombre"));
+                    user.setEmail(metadata.getString("email"));
+
+                    lastPdfPerUser.put(userId, user);
+                }
+            }
+        }
+
+        return new ArrayList<>(lastPdfPerUser.values());
+    }
+
+    @Override
+    public GridFSFile findLatestPdfByUserId(int userId) {
+        try (MongoCursor<GridFSFile> cursor = gridFSBucket.find(
+                Filters.eq("metadata.user_id", userId))
+                .sort(Sorts.descending("uploadDate"))
+                .limit(1)
+                .iterator()) {
+
+            if (cursor.hasNext()) {
+                return cursor.next();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public InputStream getPdfStream(GridFSFile file) {
+        return gridFSBucket.openDownloadStream(file.getObjectId());
+    }
+
+    @Override
+    public void actualizarPdfEstado(int idUsuario, StatusPDF statusPDF) {
+        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET")+".files");
+
+        Document query = new Document("metadata.user_id", idUsuario);
+        Document sort = new Document("uploadDate", -1);
+        Document ultimoPdf = filesCollection.find(query).sort(sort).first();
+
+        if (ultimoPdf != null) {
+            Document metadata = (Document) ultimoPdf.get("metadata");
+            if (metadata != null) {
+                metadata.put("estado", statusPDF.name());
+
+                filesCollection.updateOne(
+                        new Document("_id", ultimoPdf.getObjectId("_id")),
+                        new Document("$set", new Document("metadata", metadata))
+                );
+            }
+        }
+    }
+
+    @Override
+    public boolean existById(int id) {
+        String sql = "select 1 from users where id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                return rs.next();
+
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+
+        }
+    }
+
+    @Override
+    public void updateMongo(int id, User user) {
+        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET")+".files");
+
+        Document fieldsToUpdate = new Document();
+        if (user.getName() != null) {
+            fieldsToUpdate.append("metadata.nombre", user.getName());
+        }
+        if (user.getEmail() != null) {
+            fieldsToUpdate.append("metadata.email", user.getEmail());
+        }
+
+        if (fieldsToUpdate.isEmpty()) {
+            return;
+        }
+
+        filesCollection.updateMany(
+                new Document("metadata.user_id", id),
+                new Document("$set", fieldsToUpdate)
+        );
     }
 
 }

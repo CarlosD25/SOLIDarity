@@ -2,11 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package persistencia;
+package persistencia.connection;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import config.Config;
 
 /**
  *
@@ -18,9 +19,17 @@ public class ConnectionMongoDB {
 
     public static MongoDatabase getDatabase() {
         if (database == null) {
-            mongoClient = MongoClients.create("mongodb://localhost:27017"); 
-            database = mongoClient.getDatabase("usuariosDB"); 
+            mongoClient = MongoClients.create("mongodb://localhost:"+Config.get("MONGO_HOST")); 
+            database = mongoClient.getDatabase(""+Config.get("MONGO_DB")); 
         }
         return database;
+    }
+    
+    public static void close() {
+        if (mongoClient != null) {
+            mongoClient.close();
+            mongoClient = null;
+            database = null;
+        }
     }
 }

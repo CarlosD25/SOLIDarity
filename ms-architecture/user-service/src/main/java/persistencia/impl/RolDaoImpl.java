@@ -15,7 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Rol;
 import model.Roles;
-import persistencia.ConnectionPostgresDB;
+import persistencia.connection.ConnectionPostgresDB;
 import persistencia.RolDao;
 
 /**
@@ -33,7 +33,7 @@ public class RolDaoImpl implements RolDao {
             Logger.getLogger(RolDaoImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     @Override
     public boolean existsRol(String name) {
 
