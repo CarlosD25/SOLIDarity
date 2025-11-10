@@ -10,7 +10,12 @@ package model;
  */
 public enum Status {
     
-    EN_PROGRESO
+    PENDIENTE,
+    ACTIVADA,
+    EN_PROGRESO, 
+    COMPLETADA,
+    PAUSADA,
+    RECHAZADA
     
     
 }
