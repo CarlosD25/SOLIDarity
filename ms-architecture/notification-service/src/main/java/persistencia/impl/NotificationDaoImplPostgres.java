@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package persistencia;
+package persistencia.impl;
 
+import persistencia.connection.ConnectionPostgresDB;
 import com.milista.datos.MiLista;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,21 +15,22 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Notification;
+import persistencia.NotificationDao;
 
 /**
  *
  * @author Carlo
  */
-public class NotificationDaoImpl implements NotificationDao {
+public class NotificationDaoImplPostgres implements NotificationDao {
 
     private Connection conn;
 
-    public NotificationDaoImpl() {
+    public NotificationDaoImplPostgres() {
 
         try {
             conn = ConnectionPostgresDB.getInstance();
         } catch (SQLException ex) {
-            Logger.getLogger(NotificationDaoImpl.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(NotificationDaoImplPostgres.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -64,7 +66,7 @@ public class NotificationDaoImpl implements NotificationDao {
 
     @Override
     public List<Notification> findByUserId(int id) {
-        String sql = "SELECT * FROM notifications WHERE user_id = ?";
+        String sql = "SELECT * FROM notifications WHERE user_id = ? ORDER BY fecha DESC";
         List<Notification> notifications = new MiLista<>();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
