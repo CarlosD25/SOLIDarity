@@ -4,10 +4,22 @@
  */
 package service;
 
+import client.NotificationClient;
+import com.mongodb.client.gridfs.model.GridFSFile;
 import dto.BeneficiarioStatusResponseDTO;
+import dto.NotificationRequestDTO;
+import dto.PdfDTO;
+import dto.PdfEstadoRequestDTO;
+import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
+import exception.NotificationServiceException;
+import exception.PdfNotFoundException;
+import exception.UserNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.http.HttpResponse;
 import java.util.List;
 import mapper.UserMapper;
 import mapper.UserMapperImpl;
@@ -26,9 +38,17 @@ import persistencia.impl.UserDaoImpl;
  */
 public class UserServiceImpl implements UserService {
 
-    private final UserDao userDao = new UserDaoImpl();
-    private final UserMapper userMapper = UserMapperImpl.getInstance();
-    private final RolDao rolDao = new RolDaoImpl();
+    private final UserDao userDao;
+    private final UserMapper userMapper;
+    private final RolDao rolDao;
+    private final NotificationClient client;
+
+    public UserServiceImpl() {
+        userDao = new UserDaoImpl();
+        userMapper = UserMapperImpl.getInstance();
+        rolDao = new RolDaoImpl();
+        client = NotificationClient.getInstance();
+    }
 
     @Override
     public UserResponseDTO create(UserRequestDTO userRequestDTO) {
@@ -44,7 +64,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO getById(int id) {
 
-        return userMapper.toDTO(userDao.getById(id));
+        User u = userDao.findById(id);
+        if (u == null) {
+            throw new UserNotFoundException("Usuario con ID " + id + " no encontrado");
+        }
+
+        return userMapper.toDTO(u);
 
     }
 
@@ -57,7 +82,35 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO update(int id, UserRequestDTO user) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+
+        User u = userDao.findById(id);
+        if (u == null) {
+            throw new UserNotFoundException("Usuario con ID " + id + " no encontrado");
+        }
+
+        if (user.getName() != null) {
+            u.setName(user.getName());
+        }
+
+        if (user.getTelefono() != null) {
+            u.setTelefono(user.getTelefono());
+        }
+
+        if (user.getAddress() != null) {
+            u.setAddress(user.getAddress());
+        }
+
+        if (user.getPassword() != null) {
+            u.setPassword(user.getPassword());
+        }
+
+        if (user.getEmail() != null) {
+            u.setEmail(user.getEmail());
+        }
+        
+        userDao.updateMongo(id, u);
+        return userMapper.toDTO(userDao.updatePostgres(id, u));
+
     }
 
     @Override
@@ -72,19 +125,74 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void saveUserPDF(int id, String filename, InputStream inputStream) {
-        
-        User u = userDao.getById(id);
+
+        User u = userDao.findById(id);
+
+        if (u == null) {
+            throw new UserNotFoundException("Usuario con ID " + id + " no encontrado");
+        }
+
         userDao.saveUserPDF(u, StatusPDF.PENDIENTE, filename, inputStream);
-        
+
     }
 
     @Override
     public BeneficiarioStatusResponseDTO getBeneficiarioStatus(int id) {
-        
+
         String status = userDao.getPdfState(id);
+        if (status == null) {
+            throw new PdfNotFoundException("El usuario con ID " + id + " aún no tiene ningún PDF.");
+        }
         BeneficiarioStatusResponseDTO responseDTO = new BeneficiarioStatusResponseDTO();
         responseDTO.setStatus(status);
         return responseDTO;
+    }
+
+    @Override
+    public List<UserLastPdfDTO> findUsersWithLastPdfByState(String estado) {
+
+        return userDao.findUsersWithLastPdfByState(estado).stream().map(userMapper::toUserPdfDTO).toList();
+
+    }
+
+    @Override
+    public PdfDTO findLatestPdfByUserId(int userId) {
+        GridFSFile pdfFile = userDao.findLatestPdfByUserId(userId);
+
+        if (pdfFile == null) {
+            throw new PdfNotFoundException("El usuario con ID " + userId + " aún no tiene ningún PDF.");
+        }
+
+        InputStream stream = userDao.getPdfStream(pdfFile);
+        return new PdfDTO(stream, pdfFile.getFilename());
+    }
+
+    @Override
+    public void actualizarPdfEstado(int id, PdfEstadoRequestDTO pdfEstadoRequestDTO) {
+
+        if (!userDao.existById(id)) {
+            throw new UserNotFoundException("Usuario con ID " + id + " no encontrado");
+        }
+
+        userDao.actualizarPdfEstado(id, pdfEstadoRequestDTO.getStatusPDF());
+
+        NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
+        notificationRequestDTO.setIdUser(id);
+        notificationRequestDTO.setMessage("Felicidades, tu hoja de vida ha sido " + pdfEstadoRequestDTO.getStatusPDF());
+
+        try {
+            HttpResponse<String> response = client.enviarNotificacion(notificationRequestDTO);
+
+            if (response.statusCode() != HttpURLConnection.HTTP_CREATED) {
+                throw new NotificationServiceException(
+                        "Error de comunicación con el servicio de notificaciones"
+                );
+            }
+
+        } catch (IOException | InterruptedException e) {
+            throw new NotificationServiceException("Error de comunicación con el servicio de notificaciones");
+        }
+
     }
 
 }

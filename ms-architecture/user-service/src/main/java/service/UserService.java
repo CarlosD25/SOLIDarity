@@ -5,7 +5,11 @@
 package service;
 
 
+import com.mongodb.client.gridfs.model.GridFSFile;
 import dto.BeneficiarioStatusResponseDTO;
+import dto.PdfDTO;
+import dto.PdfEstadoRequestDTO;
+import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
 import java.io.InputStream;
@@ -26,4 +30,7 @@ public interface UserService {
     void activate(int id);
     void saveUserPDF(int id,String filename,InputStream inputStream);
     BeneficiarioStatusResponseDTO getBeneficiarioStatus(int id);
+    List<UserLastPdfDTO> findUsersWithLastPdfByState(String estado);
+    PdfDTO findLatestPdfByUserId(int userId);
+    void actualizarPdfEstado(int id,PdfEstadoRequestDTO pdfEstadoRequestDTO);
 }
