@@ -15,6 +15,19 @@ import model.Donacion;
  */
 public class DonacionMapperImpl implements DonacionMapper{
 
+    private DonacionMapperImpl(){
+        
+    }
+    
+    public static class Holder{
+        private static final DonacionMapperImpl DONACION_MAPPER_IMPL = new DonacionMapperImpl();
+    }
+    
+    public static DonacionMapperImpl getInstace(){
+        return Holder.DONACION_MAPPER_IMPL;
+    }
+    
+    
     @Override
     public Donacion toEntity(DonacionRequestDTO requestDTO) {
         Donacion d = new Donacion();
