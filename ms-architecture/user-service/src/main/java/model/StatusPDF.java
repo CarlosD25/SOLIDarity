@@ -10,6 +10,6 @@ package model;
  */
 public enum StatusPDF {
     
-    PENDIENTE,APROBADO,RECHAZADO
+    PENDIENTE,APROBADA,RECHAZADA
     
 }
