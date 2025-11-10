@@ -13,7 +13,7 @@ import mapper.NotificationMapper;
 import mapper.NotificationMapperImpl;
 import model.Notification;
 import persistencia.NotificationDao;
-import persistencia.NotificationDaoImpl;
+import persistencia.factory.NotificationDaoFactory;
 
 /**
  *
@@ -21,9 +21,14 @@ import persistencia.NotificationDaoImpl;
  */
 public class NotificationServiceImpl implements NotificationService {
 
-    private final NotificationDao notificationDao = new NotificationDaoImpl();
-    private final NotificationMapper notificationMapper = new NotificationMapperImpl();
+    private final NotificationDao notificationDao;
+    private final NotificationMapper notificationMapper;
 
+    public NotificationServiceImpl(){
+        notificationDao = NotificationDaoFactory.getNotificationDao(NotificationDaoFactory.TipoDB.POSTGRES);
+        notificationMapper = NotificationMapperImpl.getInstance();
+    }
+    
     @Override
     public NotificationResponseDTO create(NotificationRequestDTO requestDTO) {
 
