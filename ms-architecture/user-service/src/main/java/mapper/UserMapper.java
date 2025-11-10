@@ -4,6 +4,7 @@
  */
 package mapper;
 
+import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
 import model.User;
@@ -16,5 +17,6 @@ public interface UserMapper {
     
     UserResponseDTO toDTO(User user);
     User toEntity(UserRequestDTO userRequestDTO);
+    UserLastPdfDTO toUserPdfDTO(User user);
     
 }

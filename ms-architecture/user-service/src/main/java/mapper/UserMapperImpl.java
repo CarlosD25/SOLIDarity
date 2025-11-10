@@ -5,6 +5,7 @@
 package mapper;
 
 import com.milista.datos.MiLista;
+import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
 import java.util.List;
@@ -22,11 +23,12 @@ public class UserMapperImpl implements UserMapper {
     private UserMapperImpl() {
     }
 
+    public static class Holder{
+        private static final UserMapperImpl USER_MAPPER_IMPL = new UserMapperImpl();
+    }
+    
     public static UserMapperImpl getInstance() {
-        if (userMapperImpl == null) {
-            userMapperImpl = new UserMapperImpl();
-        }
-        return userMapperImpl;
+        return Holder.USER_MAPPER_IMPL;
     }
 
     @Override
@@ -50,6 +52,18 @@ public class UserMapperImpl implements UserMapper {
         user.setPassword(userRequestDTO.getPassword());
         user.setAddress(userRequestDTO.getAddress());
         return user;
+    }
+
+    @Override
+    public UserLastPdfDTO toUserPdfDTO(User user) {
+
+        UserLastPdfDTO lastPdfDTO = new UserLastPdfDTO();
+        lastPdfDTO.setId(user.getId());
+        lastPdfDTO.setName(user.getName());
+        lastPdfDTO.setEmail(user.getEmail());
+
+        return lastPdfDTO;
+
     }
 
 }
