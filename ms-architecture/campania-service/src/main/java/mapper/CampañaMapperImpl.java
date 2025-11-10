@@ -15,6 +15,18 @@ import model.Campaña;
  */
 public class CampañaMapperImpl implements CampañaMapper {
 
+    private CampañaMapperImpl(){
+        
+    }
+    
+    public static class Holder{
+        private static final CampañaMapperImpl CAMPAÑA_MAPPER_IMPL = new CampañaMapperImpl();
+    }
+    
+    public static CampañaMapperImpl getInstance(){
+        return Holder.CAMPAÑA_MAPPER_IMPL;
+    }
+    
     @Override
     public CampañaResponseDTO toResponseDto(Campaña campaña) {
 
