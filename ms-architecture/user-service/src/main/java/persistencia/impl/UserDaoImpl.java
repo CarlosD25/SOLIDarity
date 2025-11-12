@@ -55,7 +55,7 @@ public class UserDaoImpl implements UserDao {
         }
 
         this.database = ConnectionMongoDB.getDatabase();
-        this.gridFSBucket = GridFSBuckets.create(database, ""+Config.get("MONGO_BUCKET"));
+        this.gridFSBucket = GridFSBuckets.create(database, "" + Config.get("MONGO_BUCKET"));
     }
 
     @Override
@@ -203,6 +203,8 @@ public class UserDaoImpl implements UserDao {
         if (user.getEmail() != null) {
             sql.append("email = ?, ");
             params.add(user.getEmail());
+            String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+            params.add(hashedPassword);
         }
 
         if (params.isEmpty()) {
@@ -325,7 +327,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public String getPdfState(int id) {
-        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET")+".files");
+        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET") + ".files");
 
         Document query = new Document("metadata.user_id", id);
 
@@ -393,7 +395,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void actualizarPdfEstado(int idUsuario, StatusPDF statusPDF) {
-        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET")+".files");
+        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET") + ".files");
 
         Document query = new Document("metadata.user_id", idUsuario);
         Document sort = new Document("uploadDate", -1);
@@ -434,7 +436,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void updateMongo(int id, User user) {
-        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET")+".files");
+        MongoCollection<Document> filesCollection = database.getCollection(Config.get("MONGO_BUCKET") + ".files");
 
         Document fieldsToUpdate = new Document();
         if (user.getName() != null) {
@@ -452,6 +454,33 @@ public class UserDaoImpl implements UserDao {
                 new Document("metadata.user_id", id),
                 new Document("$set", fieldsToUpdate)
         );
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        String sql = "select * from users where email = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User u = new User();
+                    u.setId(rs.getInt("id"));
+                    u.setName(rs.getString("name"));
+                    u.setTelefono(rs.getString("telefono"));
+                    u.setAddress(rs.getString("address"));
+                    u.setEmail(rs.getString("email"));
+                    u.setActive(rs.getBoolean("active"));
+                    u.setPassword(rs.getString("password"));
+                    return u;
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDaoImpl.class.getName()).log(Level.SEVERE, "Error al buscar usuario por email", ex);
+        }
+
+        return null;
     }
 
 }

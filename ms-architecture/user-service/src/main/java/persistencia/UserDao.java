@@ -32,4 +32,5 @@ public interface UserDao {
     InputStream getPdfStream(GridFSFile file);
     void actualizarPdfEstado(int idUsuario,StatusPDF statusPDF);
     boolean existById(int id);
+    User findByEmail(String email);
 }
