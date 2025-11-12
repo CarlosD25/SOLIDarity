@@ -19,17 +19,27 @@ public class CampañaResumenDTO {
     private Status status;
     private BigDecimal montoObjetivo;
     private BigDecimal montoRecaudado;
+    private String imagenUrl;
 
     public CampañaResumenDTO() {
     }
 
-    public CampañaResumenDTO(int id, int idBeneficiario, String titulo, Status status, BigDecimal montoObjetivo, BigDecimal montoRecaudado) {
+    public CampañaResumenDTO(int id, int idBeneficiario, String titulo, Status status, BigDecimal montoObjetivo, BigDecimal montoRecaudado, String imagenUrl) {
         this.id = id;
         this.idBeneficiario = idBeneficiario;
         this.titulo = titulo;
         this.status = status;
         this.montoObjetivo = montoObjetivo;
         this.montoRecaudado = montoRecaudado;
+        this.imagenUrl = imagenUrl;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getIdBeneficiario() {
@@ -38,15 +48,6 @@ public class CampañaResumenDTO {
 
     public void setIdBeneficiario(int idBeneficiario) {
         this.idBeneficiario = idBeneficiario;
-    }
-
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getTitulo() {
@@ -80,6 +81,16 @@ public class CampañaResumenDTO {
     public void setMontoRecaudado(BigDecimal montoRecaudado) {
         this.montoRecaudado = montoRecaudado;
     }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
+    }
+
+    
 
     
     
