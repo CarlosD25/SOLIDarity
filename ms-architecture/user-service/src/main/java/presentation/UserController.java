@@ -11,6 +11,7 @@ import dto.PdfEstadoRequestDTO;
 import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
+import exception.EmailAlreadyExistsException;
 import exception.NotificationServiceException;
 import exception.PdfNotFoundException;
 import exception.UserNotFoundException;
@@ -66,17 +67,11 @@ public class UserController extends HttpServlet {
                 return;
             }
 
-            BufferedReader br = req.getReader();
-            UserRequestDTO userRequestDTO = objectMapper.readValue(br, UserRequestDTO.class);
-
-            UserResponseDTO userResponseDTO = userService.create(userRequestDTO);
-
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            resp.setStatus(HttpServletResponse.SC_CREATED);
-            objectMapper.writeValue(resp.getWriter(), userResponseDTO);
         } catch (UserNotFoundException ex) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().write(ex.getMessage());
+        } catch (EmailAlreadyExistsException ex) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(ex.getMessage());
         } catch (Exception ex) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
