@@ -5,6 +5,7 @@
 package persistencia;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 import model.Campaña;
 import model.Status;
@@ -23,5 +24,7 @@ public interface CampañaDao {
     boolean existById(int id);
     void updateEstado(int id,  Status nuevoEstado);
     Campaña update(int id, Campaña campaña);
+    List<Campaña> findByStatus(String status);
+    void actualizarFechaFinalizacion(int id, Timestamp nuevaFechaFinalizacion);
     
 }

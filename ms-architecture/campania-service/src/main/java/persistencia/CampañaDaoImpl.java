@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -141,7 +142,7 @@ public class CampañaDaoImpl implements CampañaDao {
                     c.setFechaFinalizacion(rs.getTimestamp("fecha_finalizacion"));
                     c.setMontoObjetivo(rs.getBigDecimal("monto_objetivo"));
                     c.setMontoRecaudado(rs.getBigDecimal("monto_recaudado"));
-                    c.setImagenUrl("imagen_url");
+                    c.setImagenUrl(rs.getString("imagen_url"));
                     camapañas.add(c);
                 }
 
@@ -247,6 +248,55 @@ public class CampañaDaoImpl implements CampañaDao {
         }
 
         return findById(id);
+    }
+
+    @Override
+    public List<Campaña> findByStatus(String status) {
+        List<Campaña> campañas = new ArrayList<>();
+        String sql = "SELECT * FROM campañas WHERE status = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Campaña c = new Campaña();
+                    c.setId(rs.getInt("id"));
+                    c.setIdBeneficiario(rs.getInt("id_beneficiario"));
+                    c.setTitulo(rs.getString("titulo"));
+                    c.setStatus(Status.valueOf(rs.getString("status")));
+                    c.setDescripcion(rs.getString("descripcion"));
+                    c.setFechaInicio(rs.getTimestamp("fecha_inicio"));
+                    c.setFechaFinalizacion(rs.getTimestamp("fecha_finalizacion"));
+                    c.setMontoObjetivo(rs.getBigDecimal("monto_objetivo"));
+                    c.setMontoRecaudado(rs.getBigDecimal("monto_recaudado"));
+                    c.setImagenUrl(rs.getString("imagen_url"));
+                    campañas.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al obtener campañas por status: " + status, e);
+        }
+
+        return campañas;
+    }
+
+    @Override
+    public void actualizarFechaFinalizacion(int id, Timestamp nuevaFechaFinalizacion) {
+        String sql = "UPDATE campañas SET fecha_finalizacion = ? WHERE id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, nuevaFechaFinalizacion);
+            ps.setInt(2, id);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new RuntimeException("No se encontró la campaña con id: " + id);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al actualizar la fecha de finalización de la campaña con id: " + id, e);
+        }
     }
 
 }
