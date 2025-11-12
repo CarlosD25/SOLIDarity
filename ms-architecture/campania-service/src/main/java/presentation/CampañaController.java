@@ -110,7 +110,7 @@ public class CampañaController extends HttpServlet {
                 return;
             }
 
-            if (pathInfo != null && pathInfo.matches("/\\d+")) { 
+            if (pathInfo != null && pathInfo.matches("/\\d+")) {
                 int id = Integer.parseInt(pathInfo.split("/")[1]);
 
                 CampañaUpdateDTO campañaUpdateDTO = objectMapper.readValue(request.getReader(), CampañaUpdateDTO.class);
@@ -141,7 +141,18 @@ public class CampañaController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String pathInfo = req.getPathInfo();
+            String statusParam = req.getParameter("status"); 
 
+            if (statusParam != null && !statusParam.isEmpty()) {
+                List<CampañaResumenDTO> campañasPorStatus = campañaService.getByStatus(statusParam);
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                objectMapper.writeValue(resp.getWriter(), campañasPorStatus);
+                return;
+            }
+            
             if (pathInfo == null || pathInfo.equals("/")) {
                 List<CampañaResumenDTO> campañas = campañaService.getAll();
 
