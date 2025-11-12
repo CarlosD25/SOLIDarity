@@ -69,6 +69,7 @@ public class CampañaMapperImpl implements CampañaMapper {
         campañaResumenDTO.setTitulo(campaña.getTitulo());
         campañaResumenDTO.setMontoObjetivo(campaña.getMontoObjetivo());
         campañaResumenDTO.setMontoRecaudado(campaña.getMontoRecaudado());
+        campañaResumenDTO.setImagenUrl(campaña.getImagenUrl());
         return campañaResumenDTO;
     }
 
