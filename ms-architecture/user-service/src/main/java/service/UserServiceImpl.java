@@ -7,12 +7,15 @@ package service;
 import client.NotificationClient;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import dto.BeneficiarioStatusResponseDTO;
+import dto.LoginRequestDTO;
 import dto.NotificationRequestDTO;
 import dto.PdfDTO;
 import dto.PdfEstadoRequestDTO;
 import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
+import exception.EmailAlreadyExistsException;
+import exception.InvalidCredentialsException;
 import exception.NotificationServiceException;
 import exception.PdfNotFoundException;
 import exception.UserNotFoundException;
@@ -27,6 +30,7 @@ import model.Rol;
 import model.Roles;
 import model.StatusPDF;
 import model.User;
+import org.mindrot.jbcrypt.BCrypt;
 import persistencia.RolDao;
 import persistencia.UserDao;
 import persistencia.impl.RolDaoImpl;
@@ -52,7 +56,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDTO create(UserRequestDTO userRequestDTO) {
+
         User user = userMapper.toEntity(userRequestDTO);
+        User existingUser = userDao.findByEmail(user.getEmail());
+        if (existingUser != null) {
+            throw new EmailAlreadyExistsException("El correo electrónico ya está registrado.");
+        }
         Rol rol = rolDao.existsRol(Roles.ROLE_DONANTE.name())
                 ? rolDao.findByName(Roles.ROLE_DONANTE.name()) : rolDao.save(new Rol(Roles.ROLE_DONANTE));
         user.setActive(true);
@@ -107,7 +116,7 @@ public class UserServiceImpl implements UserService {
         if (user.getEmail() != null) {
             u.setEmail(user.getEmail());
         }
-        
+
         userDao.updateMongo(id, u);
         return userMapper.toDTO(userDao.updatePostgres(id, u));
 
@@ -193,6 +202,21 @@ public class UserServiceImpl implements UserService {
             throw new NotificationServiceException("Error de comunicación con el servicio de notificaciones");
         }
 
+    }
+
+    @Override
+    public UserResponseDTO login(LoginRequestDTO loginRequestDTO) {
+        User user = userDao.findByEmail(loginRequestDTO.getEmail());
+
+        if (user == null) {
+            throw new InvalidCredentialsException("Usuario o contraseña inválidos ");
+        }
+
+        if (!BCrypt.checkpw(loginRequestDTO.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Usuario o contraseña inválidos ");
+        }
+
+        return userMapper.toDTO(user);
     }
 
 }

@@ -7,6 +7,7 @@ package service;
 
 import com.mongodb.client.gridfs.model.GridFSFile;
 import dto.BeneficiarioStatusResponseDTO;
+import dto.LoginRequestDTO;
 import dto.PdfDTO;
 import dto.PdfEstadoRequestDTO;
 import dto.UserLastPdfDTO;
@@ -33,4 +34,5 @@ public interface UserService {
     List<UserLastPdfDTO> findUsersWithLastPdfByState(String estado);
     PdfDTO findLatestPdfByUserId(int userId);
     void actualizarPdfEstado(int id,PdfEstadoRequestDTO pdfEstadoRequestDTO);
+    UserResponseDTO login(LoginRequestDTO loginRequestDTO);
 }
