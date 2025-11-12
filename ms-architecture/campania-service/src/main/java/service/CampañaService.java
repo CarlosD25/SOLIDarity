@@ -27,6 +27,6 @@ public interface CampañaService {
     void actualizarMontoRecaudado(DonacionRequestDTO donacionRequestDTO);
     void actualizarEstado(int id, CampañaEstadoRequestDTO request);
     CampañaResponseDTO update(int id, CampañaUpdateDTO campañaUpdateDTO);
-
+    List<CampañaResumenDTO> getByStatus(String status);
     
 }

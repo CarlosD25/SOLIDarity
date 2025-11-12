@@ -136,6 +136,7 @@ public class CampañaServiceImpl implements CampañaService {
         if (newMontoRecaudado.compareTo(campaña.getMontoObjetivo()) >= 0) {
             campañaDao.actualizarMontoRecaudado(campaña.getId(), newMontoRecaudado);
             campañaDao.updateEstado(campaña.getId(), Status.COMPLETADA);
+            campañaDao.actualizarFechaFinalizacion(campaña.getId(), Timestamp.from(Instant.now()));
         } else {
             campañaDao.actualizarMontoRecaudado(campaña.getId(), newMontoRecaudado);
         }
@@ -190,5 +191,10 @@ public class CampañaServiceImpl implements CampañaService {
         
         return campañaMapper.toResponseDto(campañaDao.update(id, c));
         
+    }
+
+    @Override
+    public List<CampañaResumenDTO> getByStatus(String status) {
+        return campañaDao.findByStatus(status).stream().map(campañaMapper::toResumenDto).toList();
     }
 }
