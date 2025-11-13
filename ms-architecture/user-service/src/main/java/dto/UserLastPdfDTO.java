@@ -12,14 +12,24 @@ public class UserLastPdfDTO {
     private int id;
     private String name;
     private String email;
+    private String imagenUrl;
 
     public UserLastPdfDTO() {
     }
 
-    public UserLastPdfDTO(int id, String name, String email) {
+    public UserLastPdfDTO(int id, String name, String email, String imagenUrl) {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.imagenUrl = imagenUrl;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
     }
 
     public int getId() {

@@ -18,19 +18,27 @@ public class UserResponseDTO {
     private String telefono;
     private String address;
     private String email;
+    private String imagenUrl;
 
     public UserResponseDTO() {
     }
 
-    public UserResponseDTO(int id, String name, String telefono, String address, String email) {
+    public UserResponseDTO(int id, String name, String telefono, String address, String email, String imagenUrl) {
         this.id = id;
         this.name = name;
         this.telefono = telefono;
         this.address = address;
         this.email = email;
+        this.imagenUrl = imagenUrl;
     }
 
-    
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
+    }
 
     public int getId() {
         return id;
