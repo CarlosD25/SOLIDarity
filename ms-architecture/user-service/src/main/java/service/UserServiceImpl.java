@@ -5,12 +5,17 @@
 package service;
 
 import client.NotificationClient;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.mongodb.client.gridfs.model.GridFSFile;
+import config.CloudinaryConfig;
+import config.Config;
 import dto.BeneficiarioStatusResponseDTO;
 import dto.LoginRequestDTO;
 import dto.NotificationRequestDTO;
 import dto.PdfDTO;
 import dto.PdfEstadoRequestDTO;
+import dto.UserImagenDTO;
 import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
@@ -18,23 +23,27 @@ import exception.EmailAlreadyExistsException;
 import exception.InvalidCredentialsException;
 import exception.NotificationServiceException;
 import exception.PdfNotFoundException;
+import exception.UserNotActiveException;
 import exception.UserNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Map;
 import mapper.UserMapper;
 import mapper.UserMapperImpl;
 import model.Rol;
 import model.Roles;
 import model.StatusPDF;
+import model.TipoDB;
 import model.User;
 import org.mindrot.jbcrypt.BCrypt;
 import persistencia.RolDao;
 import persistencia.UserDao;
-import persistencia.impl.RolDaoImpl;
-import persistencia.impl.UserDaoImpl;
+import persistencia.factory.RolDaoFactory;
+import persistencia.factory.UserDaoFactory;
+
 
 /**
  *
@@ -46,12 +55,14 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RolDao rolDao;
     private final NotificationClient client;
+    private final Cloudinary cloudinary;
 
     public UserServiceImpl() {
-        userDao = new UserDaoImpl();
+        userDao = UserDaoFactory.getUserDao(TipoDB.POSTGRES);
         userMapper = UserMapperImpl.getInstance();
-        rolDao = new RolDaoImpl();
+        rolDao = RolDaoFactory.getRolDao(TipoDB.POSTGRES);
         client = NotificationClient.getInstance();
+        cloudinary = CloudinaryConfig.getCloudinary();
     }
 
     @Override
@@ -65,6 +76,7 @@ public class UserServiceImpl implements UserService {
         Rol rol = rolDao.existsRol(Roles.ROLE_DONANTE.name())
                 ? rolDao.findByName(Roles.ROLE_DONANTE.name()) : rolDao.save(new Rol(Roles.ROLE_DONANTE));
         user.setActive(true);
+        user.setImagenUrl(Config.get("USER_IMAGE_DEFAULT"));
         user = userDao.create(user);
         userDao.assignRoleToUser(user.getId(), rol.getId());
         return userMapper.toDTO(user);
@@ -194,7 +206,7 @@ public class UserServiceImpl implements UserService {
 
             if (response.statusCode() != HttpURLConnection.HTTP_CREATED) {
                 throw new NotificationServiceException(
-                        "Error de comunicación con el servicio de notificaciones"
+                        "Hubo un problema al enviar la notificación. Por favor, inténtalo de nuevo más tarde."
                 );
             }
 
@@ -212,11 +224,55 @@ public class UserServiceImpl implements UserService {
             throw new InvalidCredentialsException("Usuario o contraseña inválidos ");
         }
 
+        if (!user.isActive()) {
+            throw new UserNotActiveException("El usuario con ID " + user.getId() + " no está activo.");
+        }
+
         if (!BCrypt.checkpw(loginRequestDTO.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Usuario o contraseña inválidos ");
         }
 
         return userMapper.toDTO(user);
+    }
+
+    @Override
+    public UserImagenDTO updateImageUser(int id, InputStream imagen) {
+
+        try {
+            User user = userDao.findById(id);
+            if (user == null) {
+                throw new UserNotFoundException("Usuario con ID " + id + " no encontrado");
+            }
+
+            byte[] bytes = imagen.readAllBytes();
+
+            String publicId = "usuario_" + id;
+
+            Map uploadResult = cloudinary.uploader().upload(
+                    bytes,
+                    ObjectUtils.asMap(
+                            "public_id", publicId,
+                            "folder", "usuarios",
+                            "overwrite", true
+                    )
+            );
+
+            if (!uploadResult.containsKey("secure_url")) {
+                throw new RuntimeException("Error al subir la imagen a Cloudinary: no se obtuvo secure_url");
+            }
+
+            String url = (String) uploadResult.get("secure_url");
+
+            userDao.actualizarImagenPostgres(id, url);
+
+            userDao.actualizarImagenMongo(id, url);
+
+            return new UserImagenDTO(url);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error de IO al procesar la imagen: " + e.getMessage(), e);
+        }
+
     }
 
 }
