@@ -17,8 +17,10 @@ import java.util.List;
 import mapper.DonacionMapper;
 import mapper.DonacionMapperImpl;
 import model.Donacion;
+import model.TipoDB;
 import persistencia.DonacionDao;
 import persistencia.DonacionDaoImpl;
+import persistencia.factory.DonacionDaoFactory;
 
 /**
  *
@@ -31,7 +33,7 @@ public class DonacionServiceImpl implements DonacionService {
     private final CampañaClient client;
 
     public DonacionServiceImpl(){
-        donacionDao = new DonacionDaoImpl();
+        donacionDao = DonacionDaoFactory.getDonacionDao(TipoDB.POSTGRES);
         donacionMapper = DonacionMapperImpl.getInstace();
         client = CampañaClient.getInstance();
     }
