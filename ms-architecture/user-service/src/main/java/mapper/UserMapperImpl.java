@@ -39,6 +39,7 @@ public class UserMapperImpl implements UserMapper {
         responseDTO.setTelefono(user.getTelefono());
         responseDTO.setAddress(user.getAddress());
         responseDTO.setEmail(user.getEmail());
+        responseDTO.setImagenUrl(user.getImagenUrl());
         return responseDTO;
 
     }
@@ -61,6 +62,7 @@ public class UserMapperImpl implements UserMapper {
         lastPdfDTO.setId(user.getId());
         lastPdfDTO.setName(user.getName());
         lastPdfDTO.setEmail(user.getEmail());
+        lastPdfDTO.setImagenUrl(user.getImagenUrl());
 
         return lastPdfDTO;
 
