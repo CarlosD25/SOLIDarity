@@ -31,8 +31,10 @@ import mapper.CampañaMapper;
 import mapper.CampañaMapperImpl;
 import model.Campaña;
 import model.Status;
+import model.TipoDB;
 import persistencia.CampañaDao;
 import persistencia.CampañaDaoImpl;
+import persistencia.factory.CampañaDaoFactory;
 
 /**
  *
@@ -45,14 +47,13 @@ public class CampañaServiceImpl implements CampañaService {
     private final Cloudinary cloudinary;
     private final NotificationClient client;
 
-    
-    public CampañaServiceImpl(){
-        campañaDao = new CampañaDaoImpl();
+    public CampañaServiceImpl() {
+        campañaDao = CampañaDaoFactory.getCampañaDao(TipoDB.POSTGRES);
         campañaMapper = CampañaMapperImpl.getInstance();
         cloudinary = CloudinaryConfig.getCloudinary();
         client = NotificationClient.getInstance();
     }
-    
+
     @Override
     public CampañaResponseDTO create(CampañaRequestDTO campañaRequestDTO) {
 
@@ -156,13 +157,17 @@ public class CampañaServiceImpl implements CampañaService {
 
         NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
         notificationRequestDTO.setIdUser(campaña.getIdBeneficiario());
-        notificationRequestDTO.setMessage("Tu campaña '" + campaña.getTitulo() + "' ha sido " + request.getStatus().name().toLowerCase() + ".");
+        if (request.getStatus().equals(Status.EN_PROGRESO)) {
+            notificationRequestDTO.setMessage("Tu campaña '" + campaña.getTitulo() + "' ha sido aprobada y activada");
+        } else {
+            notificationRequestDTO.setMessage("Tu campaña '" + campaña.getTitulo() + "' ha sido " + request.getStatus().name().toLowerCase() + ".");
+        }
 
         try {
             HttpResponse<String> response = client.enviarNotificacion(notificationRequestDTO);
             if (response.statusCode() != HttpURLConnection.HTTP_CREATED) {
                 throw new NotificationServiceException(
-                        "Error de comunicación con el servicio de notificaciones, código: " + response.statusCode()
+                        "Hubo un problema al enviar la notificación. Por favor, inténtalo de nuevo más tarde."
                 );
             }
         } catch (IOException | InterruptedException e) {
@@ -173,24 +178,26 @@ public class CampañaServiceImpl implements CampañaService {
 
     @Override
     public CampañaResponseDTO update(int id, CampañaUpdateDTO campañaUpdateDTO) {
-        
+
         Campaña c = campañaDao.findById(id);
-        if(c==null) throw new CampañaNotFoundException("Campaña con ID " + id + " no encontrada");
-        
-        if(campañaUpdateDTO.getTitulo()!=null){
+        if (c == null) {
+            throw new CampañaNotFoundException("Campaña con ID " + id + " no encontrada");
+        }
+
+        if (campañaUpdateDTO.getTitulo() != null) {
             c.setTitulo(campañaUpdateDTO.getTitulo());
         }
-        
-        if(campañaUpdateDTO.getDescripcion()!=null){
+
+        if (campañaUpdateDTO.getDescripcion() != null) {
             c.setDescripcion(campañaUpdateDTO.getDescripcion());
         }
-        
-        if(campañaUpdateDTO.getMontoObjetivo()!=null){
+
+        if (campañaUpdateDTO.getMontoObjetivo() != null) {
             c.setMontoObjetivo(campañaUpdateDTO.getMontoObjetivo());
         }
-        
+
         return campañaMapper.toResponseDto(campañaDao.update(id, c));
-        
+
     }
 
     @Override

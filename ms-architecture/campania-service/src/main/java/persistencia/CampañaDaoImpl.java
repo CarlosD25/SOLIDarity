@@ -70,7 +70,7 @@ public class CampañaDaoImpl implements CampañaDao {
     }
 
     @Override
-    public String actualizarImagenCampaña(int id, String imagenUrl) {
+    public void actualizarImagenCampaña(int id, String imagenUrl) {
         String sql = "update campañas set imagen_url = ? where id = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -79,15 +79,8 @@ public class CampañaDaoImpl implements CampañaDao {
 
             int rows = ps.executeUpdate();
 
-            if (rows > 0) {
-                return "Imagen actualizada correctamente";
-            } else {
-                return "No se encontró la campaña con id " + id;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Error al actualizar la imagen: " + e.getMessage();
+        } catch (SQLException ex) {
+            Logger.getLogger(CampañaDaoImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -253,7 +246,7 @@ public class CampañaDaoImpl implements CampañaDao {
     @Override
     public List<Campaña> findByStatus(String status) {
         List<Campaña> campañas = new ArrayList<>();
-        String sql = "SELECT * FROM campañas WHERE status = ?";
+        String sql = "select * from campañas where status = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
@@ -284,7 +277,7 @@ public class CampañaDaoImpl implements CampañaDao {
 
     @Override
     public void actualizarFechaFinalizacion(int id, Timestamp nuevaFechaFinalizacion) {
-        String sql = "UPDATE campañas SET fecha_finalizacion = ? WHERE id = ?";
+        String sql = "update campañas set fecha_finalizacion = ? where id = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setTimestamp(1, nuevaFechaFinalizacion);

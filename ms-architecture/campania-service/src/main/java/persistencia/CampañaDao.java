@@ -17,7 +17,7 @@ import model.Status;
 public interface CampañaDao {
     
     Campaña save(Campaña campaña);
-    String actualizarImagenCampaña(int id, String imagenUrl);
+    void actualizarImagenCampaña(int id, String imagenUrl);
     Campaña findById(int id);
     List<Campaña> getAll();
     void actualizarMontoRecaudado(int id,BigDecimal montoRecaudado);

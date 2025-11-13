@@ -8,13 +8,6 @@ package model;
  *
  * @author Carlo
  */
-public enum Status {
-    
-    PENDIENTE,
-    EN_PROGRESO, 
-    COMPLETADA,
-    PAUSADA,
-    RECHAZADA
-    
-    
+public enum TipoDB {
+    POSTGRES,MONGO
 }
