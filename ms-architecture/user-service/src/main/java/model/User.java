@@ -20,11 +20,12 @@ public class User {
     private String address;
     private boolean active;
     private List<Rol> roles;
+    private String imagenUrl;
 
     public User() {
     }
 
-    public User(int id, String name, String telefono, String email, String password, String address, boolean active, List<Rol> roles) {
+    public User(int id, String name, String telefono, String email, String password, String address, boolean active, List<Rol> roles, String imagenUrl) {
         this.id = id;
         this.name = name;
         this.telefono = telefono;
@@ -33,7 +34,18 @@ public class User {
         this.address = address;
         this.active = active;
         this.roles = roles;
+        this.imagenUrl = imagenUrl;
     }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
+    }
+
+    
 
     public int getId() {
         return id;
