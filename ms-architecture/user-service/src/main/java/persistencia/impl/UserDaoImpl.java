@@ -60,7 +60,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User create(User user) {
-        String sql = "insert into users (name, telefono, email, password, address, active) values (?, ?, ?, ?, ?, ?)";
+        String sql = "insert into users (name, telefono, email, password, address, active,imagen_url) values (?, ?, ?, ?, ?, ?,?)";
         User u = new User();
 
         try {
@@ -73,6 +73,7 @@ public class UserDaoImpl implements UserDao {
                 ps.setString(4, BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
                 ps.setString(5, user.getAddress());
                 ps.setBoolean(6, user.isActive());
+                ps.setString(7, user.getImagenUrl());
 
                 ps.executeUpdate();
 
@@ -83,6 +84,7 @@ public class UserDaoImpl implements UserDao {
                         u.setTelefono(rs.getString("telefono"));
                         u.setAddress(rs.getString("address"));
                         u.setEmail(rs.getString("email"));
+                        u.setImagenUrl(rs.getString("imagen_url"));
                     }
 
                 }
@@ -130,6 +132,7 @@ public class UserDaoImpl implements UserDao {
                     u.setAddress(rs.getString("address"));
                     u.setActive(rs.getBoolean("active"));
                     u.setEmail(rs.getString("email"));
+                    u.setImagenUrl(rs.getString("imagen_url"));
                     return u;
 
                 }
@@ -148,7 +151,7 @@ public class UserDaoImpl implements UserDao {
 
         List<User> users = new MiLista<>();
 
-        String sql = "select u.id, u.name, u.telefono, u.address, u.email from users u ";
+        String sql = "select u.id, u.name, u.telefono, u.address, u.email, u.imagen_url from users u ";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -162,6 +165,7 @@ public class UserDaoImpl implements UserDao {
                     u.setTelefono(rs.getString("telefono"));
                     u.setAddress(rs.getString("address"));
                     u.setEmail(rs.getString("email"));
+                    u.setImagenUrl(rs.getString("imagen_url"));
                     users.add(u);
 
                 }
@@ -289,7 +293,8 @@ public class UserDaoImpl implements UserDao {
                     .append("user_id", user.getId())
                     .append("nombre", user.getName())
                     .append("email", user.getEmail())
-                    .append("estado", estado.name());
+                    .append("estado", estado.name())
+                    .append("imagen_url", user.getImagenUrl());
 
             GridFSUploadOptions options = new GridFSUploadOptions()
                     .metadata(metadata);
@@ -364,6 +369,7 @@ public class UserDaoImpl implements UserDao {
                     user.setId(userId);
                     user.setName(metadata.getString("nombre"));
                     user.setEmail(metadata.getString("email"));
+                    user.setImagenUrl(metadata.getString("imagen_url"));
 
                     lastPdfPerUser.put(userId, user);
                 }
@@ -473,6 +479,7 @@ public class UserDaoImpl implements UserDao {
                     u.setEmail(rs.getString("email"));
                     u.setActive(rs.getBoolean("active"));
                     u.setPassword(rs.getString("password"));
+                    u.setImagenUrl(rs.getString("imagen_url"));
                     return u;
                 }
             }
@@ -481,6 +488,36 @@ public class UserDaoImpl implements UserDao {
         }
 
         return null;
+    }
+
+    @Override
+    public void actualizarImagenPostgres(int id, String imagenUrl) {
+
+        String sql = "update users set imagen_url= ? where id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, imagenUrl);
+            ps.setInt(2, id);
+
+            int rows = ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDaoImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    @Override
+    public void actualizarImagenMongo(int id, String imagenUrl) {
+
+        MongoCollection<Document> filesCollection
+                = database.getCollection(Config.get("MONGO_BUCKET") + ".files");
+
+        Document query = new Document("metadata.user_id", id);
+
+        Document update = new Document("$set", new Document("metadata.imagen_url", imagenUrl));
+
+        filesCollection.updateMany(query, update);
     }
 
 }
