@@ -4,6 +4,7 @@
  */
 package persistencia.factory;
 
+import model.TipoDB;
 import persistencia.NotificationDao;
 import persistencia.impl.NotificationDaoImplMongo;
 import persistencia.impl.NotificationDaoImplPostgres;
@@ -13,11 +14,6 @@ import persistencia.impl.NotificationDaoImplPostgres;
  * @author Carlo
  */
 public class NotificationDaoFactory {
-
-    public enum TipoDB {
-        POSTGRES,
-        MONGO
-    }
 
     public static NotificationDao getNotificationDao(TipoDB tipo) {
         switch (tipo) {

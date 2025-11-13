@@ -12,6 +12,7 @@ import java.util.List;
 import mapper.NotificationMapper;
 import mapper.NotificationMapperImpl;
 import model.Notification;
+import model.TipoDB;
 import persistencia.NotificationDao;
 import persistencia.factory.NotificationDaoFactory;
 
@@ -25,7 +26,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationMapper notificationMapper;
 
     public NotificationServiceImpl(){
-        notificationDao = NotificationDaoFactory.getNotificationDao(NotificationDaoFactory.TipoDB.POSTGRES);
+        notificationDao = NotificationDaoFactory.getNotificationDao(TipoDB.MONGO);
         notificationMapper = NotificationMapperImpl.getInstance();
     }
     

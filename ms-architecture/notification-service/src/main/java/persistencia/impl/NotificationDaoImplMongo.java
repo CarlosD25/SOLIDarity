@@ -10,6 +10,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import config.Config;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ public class NotificationDaoImplMongo implements NotificationDao {
 
     public NotificationDaoImplMongo() {
         MongoDatabase database = ConnectionMongoDB.getDatabase();
-        collection = database.getCollection("notifications");
+        collection = database.getCollection(""+Config.get("MONGO_COLLECTION"));
     }
 
     @Override
