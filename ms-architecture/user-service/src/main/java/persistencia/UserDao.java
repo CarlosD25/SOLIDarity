@@ -33,4 +33,6 @@ public interface UserDao {
     void actualizarPdfEstado(int idUsuario,StatusPDF statusPDF);
     boolean existById(int id);
     User findByEmail(String email);
+    void actualizarImagenPostgres(int id, String imagenUrl);
+    void actualizarImagenMongo(int id, String imagenUrl);
 }
