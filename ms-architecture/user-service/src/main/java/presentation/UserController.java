@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.BeneficiarioStatusResponseDTO;
 import dto.PdfDTO;
 import dto.PdfEstadoRequestDTO;
+import dto.UserImagenDTO;
 import dto.UserLastPdfDTO;
 import dto.UserRequestDTO;
 import dto.UserResponseDTO;
@@ -23,7 +24,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -223,6 +223,23 @@ public class UserController extends HttpServlet {
 
                 resp.setStatus(HttpServletResponse.SC_OK);
                 return;
+            } else if (pathInfo.endsWith("/imagen")) {
+                
+                Part filePart = req.getPart("imagen"); 
+                if (filePart == null || filePart.getSize() == 0) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("No se recibió ninguna imagen");
+                    return;
+                }
+
+                InputStream fileContent = filePart.getInputStream();
+                UserImagenDTO updatedImage = userService.updateImageUser(id, fileContent);
+
+                resp.setContentType("application/json");
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().write(new ObjectMapper().writeValueAsString(updatedImage));
+                return;
+
             } else if (parts.length == 2) {
 
                 UserRequestDTO userRequestDTO = new ObjectMapper()
