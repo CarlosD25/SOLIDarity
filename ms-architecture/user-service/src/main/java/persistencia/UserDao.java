@@ -35,4 +35,5 @@ public interface UserDao {
     User findByEmail(String email);
     void actualizarImagenPostgres(int id, String imagenUrl);
     void actualizarImagenMongo(int id, String imagenUrl);
+    List<User> findByActivo(boolean activo);
 }

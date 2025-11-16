@@ -103,7 +103,18 @@ public class UserController extends HttpServlet {
             }
 
             if (pathInfo == null || pathInfo.equals("/")) {
-                List<UserResponseDTO> usuarios = userService.getAll();
+                String activoParam = req.getParameter("activo");
+
+                List<UserResponseDTO> usuarios;
+
+                if (activoParam == null) {
+
+                    usuarios = userService.getAll();
+                } else {
+
+                    boolean activo = Boolean.parseBoolean(activoParam);
+                    usuarios = userService.getAll(activo);
+                }
 
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
@@ -224,8 +235,8 @@ public class UserController extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_OK);
                 return;
             } else if (pathInfo.endsWith("/imagen")) {
-                
-                Part filePart = req.getPart("imagen"); 
+
+                Part filePart = req.getPart("imagen");
                 if (filePart == null || filePart.getSize() == 0) {
                     resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     resp.getWriter().write("No se recibió ninguna imagen");

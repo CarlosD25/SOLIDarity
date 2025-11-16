@@ -44,7 +44,6 @@ import persistencia.UserDao;
 import persistencia.factory.RolDaoFactory;
 import persistencia.factory.UserDaoFactory;
 
-
 /**
  *
  * @author Carlo
@@ -199,7 +198,12 @@ public class UserServiceImpl implements UserService {
 
         NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
         notificationRequestDTO.setIdUser(id);
-        notificationRequestDTO.setMessage("Felicidades, tu hoja de vida ha sido " + pdfEstadoRequestDTO.getStatusPDF());
+        if (pdfEstadoRequestDTO.getStatusPDF().equals(StatusPDF.APROBADA)) {
+            notificationRequestDTO.setMessage("Felicidades, tu hoja de vida ha sido " + pdfEstadoRequestDTO.getStatusPDF());
+        } else {
+            notificationRequestDTO.setMessage("Lo sentimos, tu hoja de vida ha sido " + pdfEstadoRequestDTO.getStatusPDF()
+                    + ". Te animamos a seguir mejorando tu perfil y postular a futuras oportunidades.");
+        }
 
         try {
             HttpResponse<String> response = client.enviarNotificacion(notificationRequestDTO);
@@ -273,6 +277,11 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Error de IO al procesar la imagen: " + e.getMessage(), e);
         }
 
+    }
+
+    @Override
+    public List<UserResponseDTO> getAll(boolean activo) {
+        return userDao.findByActivo(activo).stream().map(user -> userMapper.toDTO(user)).toList();
     }
 
 }

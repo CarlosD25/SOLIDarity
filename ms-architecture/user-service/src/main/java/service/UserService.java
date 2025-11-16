@@ -35,4 +35,5 @@ public interface UserService {
     void actualizarPdfEstado(int id,PdfEstadoRequestDTO pdfEstadoRequestDTO);
     UserResponseDTO login(LoginRequestDTO loginRequestDTO);
     UserImagenDTO updateImageUser(int id, InputStream imagen);
+    List<UserResponseDTO> getAll(boolean activo);
 }

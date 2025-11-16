@@ -520,4 +520,39 @@ public class UserDaoImpl implements UserDao {
         filesCollection.updateMany(query, update);
     }
 
+    @Override
+    public List<User> findByActivo(boolean activo) {
+
+        String sql = "select u.id, u.name, u.telefono, u.address, u.email, u.imagen_url from users u where u.active=?";
+        List<User> users = new MiLista<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setBoolean(1, activo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+
+                    User u = new User();
+
+                    u.setId(rs.getInt("id"));
+                    u.setName(rs.getString("name"));
+                    u.setTelefono(rs.getString("telefono"));
+                    u.setAddress(rs.getString("address"));
+                    u.setEmail(rs.getString("email"));
+                    u.setImagenUrl(rs.getString("imagen_url"));
+                    users.add(u);
+
+                }
+
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return users;
+    }
+
 }
