@@ -292,4 +292,35 @@ public class CampañaDaoImpl implements CampañaDao {
         }
     }
 
+    @Override
+    public List<Campaña> findByBeneficiarioId(int beneficiarioId) {
+        List<Campaña> campañas = new ArrayList<>();
+        String sql = "select * from campañas c where c.id_beneficiario = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, beneficiarioId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Campaña c = new Campaña();
+                    c.setId(rs.getInt("id"));
+                    c.setIdBeneficiario(rs.getInt("id_beneficiario"));
+                    c.setTitulo(rs.getString("titulo"));
+                    c.setStatus(Status.valueOf(rs.getString("status")));
+                    c.setDescripcion(rs.getString("descripcion"));
+                    c.setFechaInicio(rs.getTimestamp("fecha_inicio"));
+                    c.setFechaFinalizacion(rs.getTimestamp("fecha_finalizacion"));
+                    c.setMontoObjetivo(rs.getBigDecimal("monto_objetivo"));
+                    c.setMontoRecaudado(rs.getBigDecimal("monto_recaudado"));
+                    c.setImagenUrl(rs.getString("imagen_url"));
+                    campañas.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return campañas;
+    }
+
 }

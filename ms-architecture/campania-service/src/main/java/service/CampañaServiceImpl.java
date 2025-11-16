@@ -204,4 +204,9 @@ public class CampañaServiceImpl implements CampañaService {
     public List<CampañaResumenDTO> getByStatus(String status) {
         return campañaDao.findByStatus(status).stream().map(campañaMapper::toResumenDto).toList();
     }
+
+    @Override
+    public List<CampañaResumenDTO> getCampañasByBeneficiarioId(int beneficiarioId) {
+        return campañaDao.findByBeneficiarioId(beneficiarioId).stream().map(campañaMapper::toResumenDto).toList();
+    }
 }

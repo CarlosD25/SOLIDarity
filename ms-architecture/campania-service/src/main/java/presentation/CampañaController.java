@@ -141,7 +141,8 @@ public class CampañaController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String pathInfo = req.getPathInfo();
-            String statusParam = req.getParameter("status"); 
+            String statusParam = req.getParameter("status");
+            String beneficiarioParam = req.getParameter("beneficiarioId");
 
             if (statusParam != null && !statusParam.isEmpty()) {
                 List<CampañaResumenDTO> campañasPorStatus = campañaService.getByStatus(statusParam);
@@ -152,7 +153,26 @@ public class CampañaController extends HttpServlet {
                 objectMapper.writeValue(resp.getWriter(), campañasPorStatus);
                 return;
             }
-            
+
+            if (beneficiarioParam != null && !beneficiarioParam.isEmpty()) {
+                int beneficiarioId;
+                try {
+                    beneficiarioId = Integer.parseInt(beneficiarioParam);
+                } catch (NumberFormatException ex) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("El parámetro beneficiarioId debe ser numérico.");
+                    return;
+                }
+
+                List<CampañaResumenDTO> campañasPorBeneficiario = campañaService.getCampañasByBeneficiarioId(beneficiarioId);
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                objectMapper.writeValue(resp.getWriter(), campañasPorBeneficiario);
+                return;
+            }
+
             if (pathInfo == null || pathInfo.equals("/")) {
                 List<CampañaResumenDTO> campañas = campañaService.getAll();
 

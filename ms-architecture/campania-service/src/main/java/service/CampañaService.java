@@ -28,5 +28,6 @@ public interface CampañaService {
     void actualizarEstado(int id, CampañaEstadoRequestDTO request);
     CampañaResponseDTO update(int id, CampañaUpdateDTO campañaUpdateDTO);
     List<CampañaResumenDTO> getByStatus(String status);
+    List<CampañaResumenDTO> getCampañasByBeneficiarioId(int beneficiarioId);
     
 }

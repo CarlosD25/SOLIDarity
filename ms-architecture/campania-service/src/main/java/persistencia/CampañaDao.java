@@ -26,5 +26,6 @@ public interface CampañaDao {
     Campaña update(int id, Campaña campaña);
     List<Campaña> findByStatus(String status);
     void actualizarFechaFinalizacion(int id, Timestamp nuevaFechaFinalizacion);
+    List<Campaña> findByBeneficiarioId(int beneficiarioId);
     
 }
