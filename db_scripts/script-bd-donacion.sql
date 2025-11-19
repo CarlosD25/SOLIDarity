@@ -1,0 +1,7 @@
+CREATE TABLE donaciones (
+    id SERIAL PRIMARY KEY,
+    id_user INTEGER NOT NULL,
+    id_campaña INTEGER NOT NULL,
+    monto NUMERIC(15,2) NOT NULL,
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
