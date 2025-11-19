@@ -19,7 +19,7 @@ public class ConnectionMongoDB {
 
     public static MongoDatabase getDatabase() {
         if (database == null) {
-            mongoClient = MongoClients.create("mongodb://localhost:"+Config.get("MONGO_HOST")); 
+            mongoClient = MongoClients.create("mongodb://localhost:"+Config.get("MONGO_HOST"));
             database = mongoClient.getDatabase(""+Config.get("MONGO_DB")); 
         }
         return database;
