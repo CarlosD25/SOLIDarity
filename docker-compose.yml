@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  # --- Base de Datos ---
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./ms-architecture/dbs:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-db:
+    image: mongo:6.0
+    container_name: mongo-db
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  # --- Microservicios ---
+  user-service:
+    build:
+      context: ./ms-architecture/user-service/
+    container_name: user-service
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      mongo-db:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: 5433
+      POSTGRES_DB: user-service-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      MONGO_HOST: 27017
+      MONGO_DB: usuariosDB
+      MONGO_BUCKET: pdfsUsuarios
+      CLOUD_NAME: "TU_CLOUD_NAME"
+      API_KEY: "TU_API_KEY"
+      API_SECRET: "TU_API_SECRET"
+      CORS_ORIGIN: "http://localhost:3000"
+      USER_IMAGE_DEFAULT: "https://res.cloudinary.com/demo/image/upload/w_100,h_100,c_thumb,g_face,r_max/face_left.png"
+
+  campania-service:
+    build:
+      context: ./ms-architecture/campania-service/
+    container_name: campania-service
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres-db
+      POSTGRES_DB: campanias_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      # Agrega aquí otras variables de entorno que necesite campania-service
+
+  donacion-service:
+    build:
+      context: ./ms-architecture/donacion-service/
+    container_name: donacion-service
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres-db
+      POSTGRES_DB: donaciones_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      # Agrega aquí otras variables de entorno que necesite donacion-service
+
+  notification-service:
+    build:
+      context: ./ms-architecture/notification-service/
+    container_name: notification-service
+    ports:
+      - "8084:8080"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres-db
+      POSTGRES_DB: notifications_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      # Agrega aquí otras variables de entorno que necesite notification-service
+
+volumes:
+  postgres-data:
+  mongo-data:
