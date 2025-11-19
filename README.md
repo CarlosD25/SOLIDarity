@@ -151,16 +151,3 @@ Cada requisito funcional será asociado con casos de uso, escenarios y pruebas d
 
 ---
 
-## 📁 Estructura sugerida del repositorio  
-```plaintext
-/
-├── docs/
-│   ├── SRS_Plataforma_Solidaria.pdf
-│   └── matriz_trazabilidad.xlsx
-├── src/
-│   ├── backend/
-│   ├── frontend/
-│   └── mobile/
-├── database/
-│   └── modelo_postgresql.sql
-└── README.md
